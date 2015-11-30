@@ -43,7 +43,6 @@ router.post('/:dayID/hotels', function(req, res, next) {
 	var placeName = Object.keys(req.body)[0];
 	Hotel.find({name: placeName})
 		.then(function(hotel) {
-			console.log(hotel);
 			Day.update({ number: req.params.dayID }, { $push: { hotel: hotel[0]._id }}, { runValidators: true })
 			.then(function(updateReport) {
 				console.log(updateReport);
@@ -56,7 +55,6 @@ router.post('/:dayID/restaurants', function(req, res, next) {
 	var placeName = Object.keys(req.body)[0];
 	Restaurant.find({name: placeName})
 		.then(function(restaurant) {
-			console.log(restaurant);
 			Day.update({ number: req.params.dayID }, { $push: { restaurants: restaurant[0]._id }}, { runValidators: true })
 			.then(function(updateReport) {
 				console.log(updateReport);
@@ -69,7 +67,6 @@ router.post('/:dayID/activities', function(req, res, next) {
 	var placeName = Object.keys(req.body)[0];
 	Activity.find({name: placeName})
 		.then(function(activity) {
-			console.log(activity);
 			Day.update({ number: req.params.dayID }, { $push: { activities: activity[0]._id }}, { runValidators: true })
 			.then(function(updateReport) {
 				console.log(updateReport);

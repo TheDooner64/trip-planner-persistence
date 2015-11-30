@@ -5,7 +5,8 @@ var PlaceSchema = new mongoose.Schema({
 	city: String,
 	state: String,
 	phone: String,
-	location: [Number]
+	location: [Number],
+    marker: Object
 });
 
 module.exports = mongoose.model('Place', PlaceSchema);
