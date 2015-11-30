@@ -73,16 +73,48 @@ $(function () {
         });
     };
 
-    var removeDay = function (dayNum) {
+    var removeDay = function () {
+        if(currentDay === numOfDays && currentDay > 1) {
+            //remove day from database, and remove button
+            $.ajax({
+                method: "DELETE",
+                url: 'api/days/day/'+currentDay,
+                data: null,
+                success: function(responseData) {
+                    currentDay--;
+                    numOfDays--;
+                    setDay(currentDay);
+                    console.log(responseData);
+                    //select and remove button
+                    var removeMe = $('div.day-buttons')[0].children[numOfDays];
+                    removeMe.remove();
+                },
+                error: function(errorObj) {
+                    console.error(errorObj.message);
+                }
+            })
+        } else {
+            $.ajax({
+                method: "DELETE",
+                url: 'api/days/allEvents/' + currentDay, 
+                data: null,
+                success: function(responseData) {
+                    setDay(currentDay);
+                },
+                error: function(errorObj) {
+                    console.error(errorObj.message);
+                }
+            })
+            //clear all fields for current day
+        }
+        // if (days.length === 1) return;
 
-        if (days.length === 1) return;
+        // reset();
 
-        reset();
+        // days.splice(dayNum - 1, 1);
 
-        days.splice(dayNum - 1, 1);
-
-        setDayButtons();
-        setDay(1);
+        // setDayButtons();
+        // setDay(1);
 
     };
 
@@ -103,13 +135,13 @@ $(function () {
 
         $.ajax({
             method: "GET",
-            url: '/api/days/'+currentDay,
+            url: '/api/days/'+dayNum,
             data: null,
             success: function(singleDay) {
                 var $dayButtons = $('.day-btn').not('.add-day');
                 $placeLists.empty();
                 currentDay = dayNum;
-
+                if(!singleDay) return;
                 singleDay.hotel.forEach(function (place) {
                     $('#hotels-list').find('ul').append(createItineraryItem(place.name));
                     // place.marker.setMap(map);
@@ -136,6 +168,7 @@ $(function () {
                 console.error(errorObj);
             }
         });
+        // debugger;
     };
 
     $addPlaceButton.on('click', function () {
@@ -170,12 +203,29 @@ $(function () {
         var $this = $(this);
         var $listItem = $this.parent().parent();
         var nameOfPlace = $this.siblings('span').text();
-        var indexOfThisPlaceInDay = getIndexOfPlace(nameOfPlace, days[currentDay - 1]);
-        var placeInDay = days[currentDay - 1][indexOfThisPlaceInDay];
+        var typeOfPlace = $this.parent().parent().parent().parent().attr('id').split('-')[0];
+        console.log("Beginning delete");
+        $.ajax({
+            method: "DELETE",
+            url: '/api/days/event/'+currentDay,
+            data: {name: nameOfPlace, type: typeOfPlace},
+            success: function(responseData) {
+                console.log(responseData);
+                $listItem.remove();                
+            },
+            error: function(errorObj){
+                console.error(errorObj);
+            }
+        });
 
-        placeInDay.marker.setMap(null);
-        days[currentDay - 1].splice(indexOfThisPlaceInDay, 1);
-        $listItem.remove();
+
+
+
+        // var indexOfThisPlaceInDay = getIndexOfPlace(nameOfPlace, days[currentDay - 1]);
+        // var placeInDay = days[currentDay - 1][indexOfThisPlaceInDay];
+
+        // placeInDay.marker.setMap(null);
+        // days[currentDay - 1].splice(indexOfThisPlaceInDay, 1);
 
     });
 
@@ -184,8 +234,8 @@ $(function () {
     });
 
     $addDayButton.on('click', function () {
-        var newNumOfDays = $(this).index();
-        createNewDay(newNumOfDays + 1);
+        numOfDays = $(this).index()+1;
+        createNewDay(numOfDays);
     });
 
     $dayTitle.children('button').on('click', function () {

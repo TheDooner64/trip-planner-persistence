@@ -78,8 +78,68 @@ router.post('/:dayID/activities', function(req, res, next) {
 	});
 });
 
-router.delete('/:dayID/', function (req, res, next) {
-	res.status(200).send(req.body);
+router.delete('/day/:dayID/', function (req, res, next) {
+	//delete whole day
+	Day.remove({number: req.params.dayID}).then(function(updateReport) {
+		res.send(updateReport);
+	}).then(null, next);
 })
 
+router.delete('/allEvents/:dayID', function(req, res, next) {
+	Day.update({number: req.params.dayID}, {$set: {hotel: [], restaurants: [], activities: []}})
+	.then(function(updateReport) {
+		res.send(updateReport);
+	}).then(null, next);
+})
+
+router.delete('/event/:dayID', function(req, res, next) {
+	console.log('test');
+	var removeEvent = req.body;
+	console.log(removeEvent);
+	if(removeEvent.type === 'hotels') removeEvent.type = 'hotel';
+	if(removeEvent.type === 'hotel') {
+		Hotel.findOne({name: removeEvent.name})
+			.then(function(oneHotel) {
+				Day.update({number: req.params.dayID}, {$pullAll: {hotel: [oneHotel._id]}})
+					.then(function (updateReport) {
+						res.send(updateReport);
+					})
+			}).then(null, function(err) {
+				console.error(err.message);
+				res.send(err);
+			});
+	} else if (removeEvent.type === 'restaurants') {
+		console.log("in restaurants remove");
+		Restaurant.findOne({name: removeEvent.name})
+			.then(function(oneRest) {
+				Day.update({number: req.params.dayID}, {$pullAll: {restaurants: [oneRest._id]}})
+					.then(function (updateReport) {
+						res.send(updateReport);
+					})
+			}).then(null, function(err) {
+				console.error(err.message);
+				res.send(err);
+			});
+	} else {
+		Activity.findOne({name: removeEvent.name})
+			.then(function(oneAct) {
+				Day.update({number: req.params.dayID}, {$pullAll: {activities: [oneAct._id]}})
+					.then(function (updateReport) {
+						res.send(updateReport);
+					})
+			}).then(null, function(err) {
+				console.error(err.message);
+				res.send(err);
+			});
+	}
+})
+
+
+
 module.exports = router;
+
+
+
+
+
+
