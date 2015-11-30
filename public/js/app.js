@@ -8,6 +8,8 @@ $(function () {
 
     var currentDay = 1;
 
+    var numOfDays = 0;
+
     var placeMapIcons = {
         activities: '/images/star-3.png',
         restaurants: '/images/restaurant.png',
@@ -169,13 +171,12 @@ $(function () {
 
     $addDayButton.on('click', function () {
 
-        var currentNumOfDays = days.length;
-        var $newDayButton = createDayButton(currentNumOfDays + 1);
-
-        $addDayButton.before($newDayButton);
-        days.push([]);
-        setDayButtons();
-        setDay(currentNumOfDays + 1);
+        var newNumOfDays = $(this).index();
+        console.log(newNumOfDays);
+        createNewDay(newNumOfDays + 1);
+        // days.push([]);
+        // setDayButtons();
+        // setDay(currentNumOfDays + 1);
 
     });
 
@@ -185,5 +186,43 @@ $(function () {
 
     });
 
+    function createNewDay(newNumOfDays) {
+        $.ajax({
+            method: "POST",
+            url: '/api/days/'+newNumOfDays,
+            data: null,
+            success: function(responseData) {
+                console.log('---',responseData,'---');
+                if(!responseData.localeCompare('Day created')) {
+                    var $newDayButton = createDayButton(newNumOfDays);
+                    $addDayButton.before($newDayButton);
+                    currentDay = newNumOfDays;
+                }
+            },
+            error: function(errorObj) {
+                console.log('shit happened');
+            }
+        });
+    }
+
+    createNewDay(1);
+
+    console.log("starting get");
+    $.ajax({
+        method: "GET",
+        url: '/api/days',
+        data: null,
+        success: function(dayArr) {
+            numOfDays = dayArr.length;
+            for(var i = 0; i < numOfDays; i++) {
+                var $newDayButton = createDayButton(i+1);
+                $addDayButton.before($newDayButton);
+            }
+        },
+        error: function(errorObj) {
+            console.log('error');
+        }
+    })
+    console.log("ending get");
 });
 
