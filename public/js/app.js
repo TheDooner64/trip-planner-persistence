@@ -79,9 +79,11 @@ $(function () {
                     //select and remove button
                     var removeMe = $('div.day-buttons')[0].children[numOfDays];
                     removeMe.remove();
+                    $('button').attr('disabled', false);
                 },
                 error: function(errorObj) {
                     console.error(errorObj.message);
+                    $('button').attr('disabled', false);
                 }
             })
         } else {
@@ -91,9 +93,11 @@ $(function () {
                 data: null,
                 success: function(responseData) {
                     setDay(currentDay);
+                    $('button').attr('disabled', false);
                 },
                 error: function(errorObj) {
                     console.error(errorObj.message);
+                    $('button').attr('disabled', false);
                 }
             })
             //clear all fields for current day
@@ -143,6 +147,7 @@ $(function () {
                     var createdMapMarker = drawLocation(map, place.place[0].location, {
                         icon: placeMapIcons["hotels"]
                     });
+                    createdMapMarker['placeName'] = place.name;
                     todaysMarkers.push(createdMapMarker);
                 });
 
@@ -151,6 +156,7 @@ $(function () {
                     var createdMapMarker = drawLocation(map, place.place[0].location, {
                         icon: placeMapIcons["restaurants"]
                     });
+                    createdMapMarker['placeName'] = place.name;
                     todaysMarkers.push(createdMapMarker);
                 });
 
@@ -159,6 +165,7 @@ $(function () {
                     var createdMapMarker = drawLocation(map, place.place[0].location, {
                         icon: placeMapIcons["activities"]
                     });
+                    createdMapMarker['placeName'] = place.name;
                     todaysMarkers.push(createdMapMarker);
                 });
 
@@ -168,14 +175,17 @@ $(function () {
                 $dayTitle.children('span').text('Day ' + dayNum.toString());
 
                 // mapFit();
+                $('button').attr('disabled', false);
             },
             error: function(errorObj) {
                 console.error(errorObj);
+                $('button').attr('disabled', false);
             }
         });
     };
 
     $addPlaceButton.on('click', function () {
+        $('button').attr('disabled', true);
         var $this = $(this);
         var sectionName = $this.parent().attr('id').split('-')[0];
         var placeName = $this.siblings('select').val();
@@ -190,20 +200,32 @@ $(function () {
                 var createdMapMarker = drawLocation(map, responseData.place[0].location, {
                     icon: placeMapIcons[sectionName]
                 });
+                createdMapMarker['placeName'] = placeName;
                 todaysMarkers.push(createdMapMarker);
 
                 $listToAppendTo.append(createItineraryItem(placeName));
 
                 // mapFit();
+                $('button').attr('disabled', false);
             },
             error: function(errorObj) {
                 console.error(errorObj);
+                $('button').attr('disabled', false);
             }
         });
     });
 
-    $placeLists.on('click', '.remove', function (e) {
+    function updateTodaysMarkers(nameToRemove) {
+        todaysMarkers.forEach(function(marker) {
+            if(marker.placeName === nameToRemove) marker.setMap(null);
+        });
+        todaysMarkers = todaysMarkers.filter(function(marker) {
+            return marker.placeName !== nameToRemove;
+        });
+    }
 
+    $placeLists.on('click', '.remove', function (e) {
+        $('button').attr('disabled', true);
         var $this = $(this);
         var $listItem = $this.parent().parent();
         var nameOfPlace = $this.siblings('span').text();
@@ -216,10 +238,12 @@ $(function () {
             success: function(responseData) {
                 console.log(responseData);
                 $listItem.remove();
-                setDay(currentDay);
+                updateTodaysMarkers(nameOfPlace);
+                $('button').attr('disabled', false);
             },
             error: function(errorObj){
                 console.error(errorObj);
+                $('button').attr('disabled', false);
             }
         });
 
@@ -232,15 +256,18 @@ $(function () {
     });
 
     $dayButtons.on('click', '.day-btn', function () {
+        $('button').attr('disabled', true);
         setDay($(this).index() + 1);
     });
 
     $addDayButton.on('click', function () {
+        $('button').attr('disabled', true);
         numOfDays = $(this).index()+1;
         createNewDay(numOfDays);
     });
 
-    $dayTitle.children('button').on('click', function () {
+    $dayTitle.children('button').on('click', function () { 
+        $('button').attr('disabled', true);
         removeDay(currentDay);
     });
 
@@ -254,10 +281,13 @@ $(function () {
                     var $newDayButton = createDayButton(newNumOfDays);
                     $addDayButton.before($newDayButton);
                     currentDay = newNumOfDays;
+                    setDay(currentDay);
                 }
+                $('button').attr('disabled', false);
             },
             error: function(errorObj) {
                 console.error(errorObj);
+                $('button').attr('disabled', false);
             }
         });
     }
@@ -277,9 +307,13 @@ $(function () {
                 var $newDayButton = createDayButton(day.number);
                 $addDayButton.before($newDayButton);
             });
+            $('button').attr('disabled', false);
         },
         error: function(errorObj) {
             console.error(errorObj);
+            $('button').attr('disabled', false);
         }
     })
+
+    setDay(currentDay);
 });
